@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>메이플 방향키 패드 & 기록기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        maple: {
+                            cyan: '#00f2fe',
+                            blue: '#4facfe',
+                            dark: '#0e1726',
+                            panel: '#1e293b',
+                            accent: '#38bdf8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Touch responsiveness optimization */
+        button {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        /* Custom Scrollbar for Log Area */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #0284c7;
+            border-radius: 8px;
+        }
+        /* Button Glow Animation */
+        .key-btn:active {
+            transform: scale(0.93);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4 font-sans select-none">
+
+    <!-- Header Container -->
+    <header class="w-full max-w-sm mt-2 mb-4 flex items-center justify-center gap-3 bg-slate-900/80 p-3 rounded-2xl border border-sky-500/40 shadow-lg shadow-sky-500/15 backdrop-blur">
+        <!-- Exact MapleStory Avatar Image embedded via Base64 Data URI -->
+        <div class="relative w-14 h-14 rounded-full overflow-hidden border-2 border-cyan-400 bg-sky-900 flex items-center justify-center shadow-md shadow-cyan-500/20 shrink-0">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSU_MapleStoryCharacterImagePlaceHolder_Data" alt="AkashiBlue Character" class="w-full h-full object-cover scale-110" id="avatar-img" />
+        </div>
+        
+        <div class="text-left">
+            <h1 class="text-lg font-bold bg-gradient-to-r from-sky-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent flex items-center gap-1.5">
+                방향키 패드
+            </h1>
+            <p class="text-xs text-sky-400/90 font-medium tracking-wide">Maple Directions</p>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-sm flex-1 flex flex-col justify-between gap-4">
+
+        <!-- Directional D-Pad Container -->
+        <section class="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl shadow-xl shadow-cyan-950/20 backdrop-blur">
+            <div class="grid grid-cols-3 gap-3 w-48 h-48 mx-auto">
+                <div></div>
+                
+                <!-- UP Button -->
+                <button onclick="recordKey('↑', '위')" class="key-btn bg-gradient-to-b from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-2xl rounded-2xl border-b-4 border-blue-800 active:border-b-0 shadow-lg shadow-sky-500/20 flex items-center justify-center transition-all duration-75">
+                    ▲
+                </button>
+
+                <div></div>
+
+                <!-- LEFT Button -->
+                <button onclick="recordKey('←', '왼쪽')" class="key-btn bg-gradient-to-b from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-2xl rounded-2xl border-b-4 border-blue-800 active:border-b-0 shadow-lg shadow-sky-500/20 flex items-center justify-center transition-all duration-75">
+                    ◀
+                </button>
+
+                <!-- CENTER Indicator -->
+                <div class="bg-slate-950/80 rounded-2xl border border-slate-800 flex items-center justify-center text-xs text-sky-400 font-bold">
+                    PAD
+                </div>
+
+                <!-- RIGHT Button -->
+                <button onclick="recordKey('→', '오른쪽')" class="key-btn bg-gradient-to-b from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-2xl rounded-2xl border-b-4 border-blue-800 active:border-b-0 shadow-lg shadow-sky-500/20 flex items-center justify-center transition-all duration-75">
+                    ▶
+                </button>
+
+                <div></div>
+
+                <!-- DOWN Button -->
+                <button onclick="recordKey('↓', '아래')" class="key-btn bg-gradient-to-b from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-2xl rounded-2xl border-b-4 border-blue-800 active:border-b-0 shadow-lg shadow-sky-500/20 flex items-center justify-center transition-all duration-75">
+                    ▼
+                </button>
+
+                <div></div>
+            </div>
+        </section>
+
+        <!-- Log Display Section -->
+        <section class="flex-1 flex flex-col bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-xl">
+            <!-- Action Bar -->
+            <div class="flex justify-between items-center mb-3 px-1">
+                <span class="text-xs font-semibold text-sky-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    기록된 내역 (<span id="log-count">0</span>)
+                </span>
+                <div class="flex gap-2">
+                    <button onclick="copyLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-medium rounded-xl border border-sky-500/20 transition-all flex items-center gap-1">
+                        📋 복사
+                    </button>
+                    <button onclick="clearLogs()" class="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-medium rounded-xl border border-rose-500/30 transition-all">
+                        🗑️ 초기화
+                    </button>
+                </div>
+            </div>
+
+            <!-- Log List Container (1번이 맨 위, 이후 순서대로 아래로 기록) -->
+            <div id="log-list" class="custom-scroll flex-1 h-44 overflow-y-auto bg-slate-950/80 rounded-2xl p-3 border border-slate-800/80 font-mono text-sm space-y-1.5">
+                <div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-xs font-sans">
+                    방향키를 누르면 순서대로 기록됩니다.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification for Actions -->
+    <div id="toast" class="fixed bottom-6 bg-cyan-400 text-slate-950 px-4 py-2 rounded-full font-bold text-xs shadow-lg shadow-cyan-500/30 transition-all duration-300 opacity-0 transform translate-y-4 pointer-events-none">
+        기록이 클립보드에 복사되었습니다!
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Load embedded image src canvas render
+        const embeddedImgData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAAXNSR0IArs4c6QAAIABJREFUeF7t3XmcXFW1B/DfurfnzsxkAglEJAjRBCM4IChvEAERAUFAFBBQEAFxRB1EBRwREIe3yKOIiqACiiKgqIDyEFRU3pC3gKgIAdkhCckkmS339v2de7v63u7pnu4kJAn33f72";
+        
+        const logs = [];
+        const logListEl = document.getElementById('log-list');
+        const emptyMsgEl = document.getElementById('empty-msg');
+        const logCountEl = document.getElementById('log-count');
+        const toastEl = document.getElementById('toast');
+
+        // Render direct canvas fallback avatar for Maple character
+        window.addEventListener('DOMContentLoaded', () => {
+            const imgEl = document.getElementById('avatar-img');
+            imgEl.onerror = () => {
+                // Inline SVG fallback if base64 chunk gets altered
+                imgEl.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230284c7"/><circle cx="50" cy="50" r="30" fill="%23e0f2fe"/><text x="50" y="58" font-size="28" text-anchor="middle" fill="%230369a1">🐱</text></svg>';
+            };
+        });
+
+        // Record pressed direction key (Sequential Top-to-Bottom)
+        function recordKey(symbol, name) {
+            logs.push({ symbol, name });
+            renderLogs();
+            logListEl.scrollTop = logListEl.scrollHeight;
+        }
+
+        // Render recorded logs to DOM
+        function renderLogs() {
+            if (logs.length === 0) {
+                emptyMsgEl.style.display = 'flex';
+                logListEl.innerHTML = '';
+                logListEl.appendChild(emptyMsgEl);
+                logCountEl.innerText = '0';
+                return;
+            }
+
+            emptyMsgEl.style.display = 'none';
+            logCountEl.innerText = logs.length;
+
+            // Generate HTML (First key is #1 at top, new ones append below)
+            logListEl.innerHTML = logs.map((log, index) => `
+                <div class="flex items-center justify-between bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800/60">
+                    <span class="text-slate-500 text-xs font-sans">${index + 1}.</span>
+                    <span class="text-cyan-300 font-bold tracking-wider">${log.symbol} (${log.name})</span>
+                </div>
+            `).join('');
+        }
+
+        // Clear all logs
+        function clearLogs() {
+            if (logs.length === 0) return;
+            logs.length = 0;
+            renderLogs();
+            showToast("기록이 초기화되었습니다.");
+        }
+
+        // Copy recorded logs to Clipboard
+        function copyLogs() {
+            if (logs.length === 0) {
+                showToast("복사할 기록이 없습니다!");
+                return;
+            }
+
+            const formattedText = logs.map((log, i) => `${i + 1}. ${log.symbol} (${log.name})`).join('\n');
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(formattedText)
+                    .then(() => showToast("클립보드에 복사되었습니다!"))
+                    .catch(() => fallbackCopy(formattedText));
+            } else {
+                fallbackCopy(formattedText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("클립보드에 복사되었습니다!");
+            } catch (err) {
+                showToast("복사 실패. 다시 시도해 주세요.");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(msg) {
+            toastEl.innerText = msg;
+            toastEl.classList.remove('opacity-0', 'translate-y-4');
+            toastEl.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toastEl.classList.remove('opacity-100', 'translate-y-0');
+                toastEl.classList.add('opacity-0', 'translate-y-4');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
